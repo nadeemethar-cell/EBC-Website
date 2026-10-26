@@ -1,24 +1,31 @@
-# Ether Building Chemical (EBC) product showcase
+# EBC Programs
 
-A responsive, Arabic-first bilingual (Arabic/English) static HTML/CSS/JavaScript site that can be uploaded to a standard web host. Visitors can use the language switch in the header; the preference is remembered in their browser.
+EBC Programs is the planned home for Ether Building Chemical's public website and internal business tools. The repository is organized as four user-facing applications backed by one shared data platform.
 
-## Files
+## Project areas
 
-- `index.html` — page content and product catalog
-- `styles.css` — responsive layout, visual design and motion
-- `script.js` — bilingual product data and per-product option lists, mobile navigation, live catalog search/filters, cart and email request flow
-- `assets/ebc-logo.png` — supplied EBC logo
-- `assets/products/` — eight product posters supplied for the catalog
+| Folder | Purpose | Intended users |
+| --- | --- | --- |
+| [`website/`](website/README.md) | Public product catalog and company information | Customers and visitors |
+| `store-panel/` | Store operations, such as product and order workflows (scope to confirm) | Store staff |
+| `employee-app/` | Phone-first access to the store information employees need (scope to confirm) | Employees |
+| `admin-panel/` | Owner-only controls, configuration, access management, and oversight | EBC owner |
+| `database/` | Shared API/backend boundary, data model, migrations, and database guidance | All applications through authorized APIs |
 
-## Before publishing
+## Architecture direction
 
-1. Product cards are populated in the `products` array in `script.js`; update the names, descriptions and image filenames there when the catalog changes. The displayed technical details were transcribed from the supplied posters and should be checked against current product datasheets before publication.
-2. Add confirmed `colors` and `sizes` arrays only on the product entries that offer those choices. Each card stores its own selected options, and checkout includes them with the requested quantity. The Oxifloor FC200 color swatches are sample shade preferences; EBC should confirm the final color chart/availability.
-3. Set `ORDER_EMAIL` and `EBC_EMAIL` in `script.js` to the company inboxes that should receive product requests and general enquiries. Checkout opens a prefilled email draft in the customer's mail app; it does not silently send mail or collect payment. A server-side service can replace this prototype later.
-4. Replace the tutorial spotlight with a real video URL when available.
-5. Check the location wording and contact details you want displayed. The current page uses Ramadi, Iraq, as provided in the request.
-6. Upload `index.html`, `styles.css`, `script.js`, and the `assets` folder together to your web host.
+- Keep the four interfaces separate so each can fit its users and devices.
+- Keep one canonical shared data model. Applications should use an authenticated server API; browser and phone clients must not connect directly to the database.
+- Enforce permissions on the server for every operation. Hiding a button in an interface is not access control. Owner-only actions require server-side owner authorization.
+- Define API contracts and data ownership before implementing cross-application features. Keep secrets out of source control and client bundles.
+- Technology choices, deployment, authentication provider, and exact store/employee workflows are intentionally undecided until requirements are discussed.
 
-The page uses Google Fonts when online and falls back to system fonts. No build step is required.
+## Current state
 
-Product code note: the supplied waterproofing poster heading reads `OXIPROOF HB`, while the bucket label appears to read `OXIPROOF HP`. The site uses the poster heading; confirm the exact name before publication. OXI product descriptions link to Al Majara/Oxichemicals product information where available; the DASH BOND and fiberglass mesh tape details are based on the supplied posters.
+`website/` contains the existing static Arabic-first, bilingual catalog. The other areas are documentation scaffolds; no store panel, phone app, admin panel, API, or database has been implemented yet.
+
+## Working in this repository
+
+Read the root [`AGENTS.md`](AGENTS.md) before making changes, then follow the closest folder-specific `AGENTS.md`. The project skill at [`.agents/skills/ebc-programs/SKILL.md`](.agents/skills/ebc-programs/SKILL.md) describes the shared architecture and product boundaries.
+
+Do not assume that the current static website's email-draft cart is a production order system. Confirm scope and data flows before connecting it to shared services.

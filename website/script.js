@@ -137,7 +137,7 @@ function renderProducts(language) {
     const sourceLink = product.source ? '<a class="manufacturer-source" href="' + product.source + '" target="_blank" rel="noopener">' + (arabic ? 'معلومات الشركة المصنعة ↗' : 'Manufacturer product information ↗') + '</a>' : '';
     const selectedColor = colors.length ? 0 : -1;
     const selectedSize = sizes.length ? 0 : -1;
-    return `<article class="product-card reveal" data-category="${product.category}" data-product-index="${index}" data-selected-color="${selectedColor}" data-selected-size="${selectedSize}"><div class="product-visual"><a class="product-image actual-product" href="assets/products/${product.file}" target="_blank" rel="noopener" aria-label="${fullImageLabel}"><img src="assets/products/${product.file}" alt="${product.name} — ${arabic ? 'ملصق منتج EBC' : 'EBC product poster'}" loading="lazy"><span class="product-number">${String(index + 1).padStart(2,'0')} / ${type}</span></a>${colorOptions}${sizeOptions}</div><div class="product-info product-info-cart"><div><h3>${product.name}</h3><p>${description}</p></div><button class="add-to-cart" type="button" data-add="${index}" aria-label="${arabic ? 'أضف إلى السلة: ' : 'Add to cart: '}${product.name}"><span>+</span> ${arabic ? 'أضف للسلة' : 'Add to cart'}</button></div><details class="product-details"><summary>${detailsLabel}</summary><ul>${details.map(item => '<li>' + item + '</li>').join('')}</ul>${colorNote}${sourceLink}</details></article>`;
+    return `<article class="product-card reveal" data-category="${product.category}" data-product-index="${index}" data-selected-color="${selectedColor}" data-selected-size="${selectedSize}"><div class="product-visual"><a class="product-image actual-product" href="assets/products/${product.file}" target="_blank" rel="noopener" aria-label="${fullImageLabel}"><img src="assets/products/${product.file}" alt="${product.name} — ${arabic ? 'ملصق منتج EBC' : 'EBC product poster'}" loading="lazy"><span class="product-number">${String(index + 1).padStart(2,'0')} / ${type}</span></a>${colorOptions}${sizeOptions}</div><div class="product-info product-info-cart"><div><h3>${product.name}</h3><p>${description}</p></div></div><div class="product-card-actions"><button class="product-detail-button" type="button" data-details="${index}">${arabic ? 'عرض التفاصيل' : 'View details'} <span>↗</span></button><button class="add-to-cart" type="button" data-add="${index}" aria-label="${arabic ? 'أضف إلى السلة: ' : 'Add to cart: '}${product.name}"><span>+</span> ${arabic ? 'أضف للسلة' : 'Add to request'}</button></div><details class="product-details"><summary>${detailsLabel}</summary><ul>${details.map(item => '<li>' + item + '</li>').join('')}</ul>${colorNote}${sourceLink}</details></article>`;
   }).join('');
   grid.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 }
@@ -182,6 +182,19 @@ function openCart(open) {
   document.getElementById('cart-toggle').setAttribute('aria-expanded', String(open));
 }
 document.querySelector('.product-grid').addEventListener('click', event => {
+  const detailButton = event.target.closest('[data-details]');
+  if (detailButton) {
+    const product = products[Number(detailButton.dataset.details)];
+    const arabic = document.documentElement.lang === 'ar';
+    const dialog = document.getElementById('product-dialog');
+    const details = arabic ? product.detailsAr : product.detailsEn;
+    const size = product.size ? `<p class="dialog-pack"><b>${arabic ? 'حجم العبوة' : 'Pack size'}</b><span>${product.size}</span></p>` : '';
+    const source = product.source ? `<a class="manufacturer-source" href="${product.source}" target="_blank" rel="noopener">${arabic ? 'افتح معلومات الشركة المصنعة ↗' : 'Open manufacturer information ↗'}</a>` : '';
+    document.getElementById('product-dialog-content').innerHTML = `<div class="dialog-image"><img src="assets/products/${product.file}" alt="${product.name}"></div><div class="dialog-copy"><p class="eyebrow"><span>${arabic ? product.typeAr : product.typeEn}</span></p><h2 id="dialog-title">${product.name}</h2><p class="dialog-description">${arabic ? product.ar : product.en}</p>${size}<h3>${arabic ? 'الاستخدام ومعلومات المنتج' : 'Uses and product information'}</h3><ul>${details.map(item => `<li>${item}</li>`).join('')}</ul>${source}<p class="dialog-disclaimer">${arabic ? 'تُعرض المعلومات للتعريف بالمنتج. راجع أحدث نشرة فنية وتواصل مع EBC لتأكيد الملاءمة والتوفر قبل الاستخدام.' : 'Information is for product discovery. Check the latest technical data sheet and confirm suitability and availability with EBC before use.'}</p></div>`;
+    dialog.querySelector('.dialog-close').setAttribute('aria-label', arabic ? 'إغلاق تفاصيل المنتج' : 'Close product details');
+    dialog.showModal();
+    return;
+  }
   const colorButton = event.target.closest('[data-option-color]');
   if (colorButton) {
     const card = colorButton.closest('.product-card');
@@ -204,6 +217,10 @@ document.querySelector('.product-grid').addEventListener('click', event => {
   const prior = button.innerHTML;
   button.innerHTML = document.documentElement.lang === 'ar' ? '✓ أضيفت' : '✓ Added';
   window.setTimeout(() => { if (button.isConnected) button.innerHTML = prior; }, 1100);
+});
+document.querySelector('.dialog-close').addEventListener('click', () => document.getElementById('product-dialog').close());
+document.getElementById('product-dialog').addEventListener('click', event => {
+  if (event.target === event.currentTarget) event.currentTarget.close();
 });
 document.getElementById('cart-items').addEventListener('click', event => {
   const quantityButton = event.target.closest('[data-qty]');
@@ -300,6 +317,7 @@ function setLanguage(language) {
   document.documentElement.dir = arabic ? 'rtl' : 'ltr';
   document.body.classList.toggle('arabic', arabic);
   document.title = arabic ? 'إيثر لكيماويات البناء | EBC' : 'Ether Building Chemical | EBC';
+  document.querySelector('meta[property="og:locale"]')?.setAttribute('content', arabic ? 'ar_IQ' : 'en_US');
   document.querySelector('meta[name="description"]').content = arabic ? 'إيثر لكيماويات البناء — حلول عملية لحماية المباني وتقويتها في العراق.' : 'Ether Building Chemical — practical chemical solutions for stronger, better protected buildings in Iraq.';
   Object.entries(arabicText).forEach(([selector, translations]) => {
     const elements = [...document.querySelectorAll(selector)];
@@ -331,7 +349,7 @@ function setLanguage(language) {
     const input = label.querySelector('input,textarea');
     if (input) input.placeholder = arabic ? ['اسمك', 'رقم الهاتف', 'المدينة أو المنطقة', 'ملاحظة اختيارية'][index] : ['Your name', 'Phone number', 'City or area', 'Optional note'][index];
   });
-  document.querySelector('.checkout-note').textContent = arabic ? 'لا يتم تحصيل أي مبلغ. سيتم إعداد رسالة بريد إلكتروني تتضمن المنتجات التي اخترتها.' : 'No payment is collected. This prepares an email with your selected items.';
+  document.querySelector('.checkout-note').textContent = arabic ? 'لا يتم تحصيل أي مبلغ أو حفظ بياناتك على الموقع. تُجهز رسالة بالمنتجات لتراجعها وترسلها من بريدك.' : 'No payment is collected and this site does not save your details. It prepares an email with your items for you to review and send.';
   document.getElementById('product-search').placeholder = arabic ? 'ابحث عن منتج' : 'Search products';
   document.getElementById('clear-search').setAttribute('aria-label', arabic ? 'مسح البحث' : 'Clear search');
   document.querySelector('.filters').setAttribute('aria-label', arabic ? 'تصفية المنتجات' : 'Filter products');
